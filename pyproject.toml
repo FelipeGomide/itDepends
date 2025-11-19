@@ -8,6 +8,8 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "pydriller (>=2.9,<3.0)",
+    "click (>=8.3.1,<9.0.0)"
 ]
 
 [tool.poetry]
