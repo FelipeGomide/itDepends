@@ -3,7 +3,10 @@ name = "itdepends"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Felipe Gomide",email = "flgomide@gmail.com"}
+    {name = "Felipe Gomide",email = "flgomide@gmail.com"},
+    {name = "Cecília Junqueira"},
+    {name = "Lucas Junqueira"},
+    {name = "Lucca Alvarenga"}
 ]
 readme = "README.md"
 requires-python = ">=3.12"
@@ -12,8 +15,11 @@ dependencies = [
     "click (>=8.3.1,<9.0.0)"
 ]
 
+[project.scripts]
+itdepends = "itdepends.cli:cli"
+
 [tool.poetry]
-packages = [{include = "itdepends", from = "src"}]
+packages = [{include = "itdepends"}]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

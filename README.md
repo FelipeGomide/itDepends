@@ -11,11 +11,11 @@ Os resultados são apresentados em um relatório HTML, contendo gráficos e tabe
 
 - Origem dos dados: GitHub
 
-- Artefatos analisados: código, arquivos do projeto, histórico  de dependências.
+- Artefatos analisados: arquivos de dependências e configuração do projeto, histórico de dependências.
 
 - Apresentação de resultados: relatório HTML, contendo gráficos e tabelas interativas que destacam métricas de dependências.
 
-- Tecnologias utilizadas: pydriller, PyPI API, typer, click, python-fire, argparse
+- Tecnologias utilizadas: pydriller, PyPI API, GitHub API, click
 
 ## Membros
 
