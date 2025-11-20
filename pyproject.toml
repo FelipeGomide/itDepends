@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = [
     {name = "Felipe Gomide",email = "flgomide@gmail.com"},
-    {name = "Cecília Junqueira"},
+    {name = "Cecília Junqueira", email="ceciliajunq@ufmg.br"},
     {name = "Lucas Junqueira"},
     {name = "Lucca Alvarenga"}
 ]
