@@ -3,7 +3,7 @@ import sys
 
 import pandas as pd
 
-from utils import save_to_csv, create_results_directories
+from .utils import save_to_csv, create_results_directories
 # from .parser import parse_dependency_file # importa a função de parser que o Lucca fizer
 
 TARGET_FILES = {"pyproject.toml", "requirements.txt"}

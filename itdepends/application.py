@@ -1,6 +1,6 @@
-from history import analyze_repository_commit_history
-from deprecation import full_deprecation_analysis
-from utils import create_results_directories, save_to_csv
+from .history import analyze_repository_commit_history
+from .deprecation import full_deprecation_analysis
+from .utils import create_results_directories, save_to_csv
 
 
 from pydriller import Repository
@@ -15,7 +15,7 @@ def run(repo_name, max_months = 12):
         
         deprecation_df = full_deprecation_analysis(cloned_repo, max_months)
         
-        create_results_directories(repo_name)
+        #create_results_directories(repo_name)
         save_to_csv(history_df, 'history', repo_name)
         save_to_csv(deprecation_df, 'deprecation', repo_name)
         

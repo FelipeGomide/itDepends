@@ -1,12 +1,17 @@
 import click
 import re
 
-from application import run
+from .application import run
+
+DEFAULT_MAX_MONTHS = 12
 
 @click.command()
 @click.argument('repository_name', metavar = "<repository_name>")
-@click.option('max_months', help= 'Number of months without commits to consider a repository inactive', type=click.INT)
-def cli(repository_name):
+@click.option('--max_months',
+              help= 'Number of months without commits to consider a repository inactive',
+              type=int,
+              default= DEFAULT_MAX_MONTHS)
+def cli(repository_name, max_months):
     """
     \b
     <repository_name>: Target repository on GitHub.
@@ -19,7 +24,7 @@ def cli(repository_name):
     if not valid:
         raise click.UsageError(f"Invalid repository name: {repository_name}")
 
-    run(repository_name)
+    run(repository_name, max_months)
     
     return
 

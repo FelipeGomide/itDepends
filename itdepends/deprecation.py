@@ -1,11 +1,11 @@
-from integrations import GitHubClient, PyPiClient
+from .integrations import GitHubClient, PyPiClient
 import pandas as pd
 
 TARGET_FILES = {"pyproject.toml", "requirements.txt"}
 
 def full_deprecation_analysis(cloned_repo, max_months):
     
-    commit = cloned_repo.traverse_commits()[-1]
+    commit = list(cloned_repo.traverse_commits())[-1]
     
     dependencies = []
     
