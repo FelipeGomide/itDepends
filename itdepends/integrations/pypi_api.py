@@ -19,13 +19,34 @@ class PyPiClient():
         except requests.exceptions.Timeout:
             return None, "timeout"
         
+    def verify_development_status(self, package_name):
+        url = self.base_url + package_name + "/json"
+        
+        data, error = self.do_safe_request(url)
+        
+        if error:
+            return False, error
+
+        classifiers = data.get("info", {}).get("classifiers", [])
+        
+        status_regex = re.compile(r"Development Status :: (\d - [A-Za-z/]+)")
+        
+        status_number = None
+        for classifier in classifiers:
+            match = status_regex.search(classifier)
+            if match:
+                status_number = match.group(1)
+                break    
+            
+        return True, status_number
+    
     def get_github_repo_name(self, package_name):
         url = self.base_url + package_name + "/json"
         
         data, error = self.do_safe_request(url)
         
         if error:
-            return None, error
+            return False, error
 
         info = data.get("info", {})
         
