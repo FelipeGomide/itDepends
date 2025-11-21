@@ -2,6 +2,7 @@ import requests
 
 import os
 from datetime import datetime, timezone
+from ..utils import diff_in_months
 
 class GitHubClient:
     def __init__(self, token=None, timeout=10):
@@ -55,10 +56,6 @@ class GitHubClient:
         is_archived = data.get("archived", False)
         
         return is_archived
-            
-# Fácil de testar
-def diff_in_months(d1, d2):
-    return (d2.year - d1.year) * 12 + d2.month - d1.month
         
 def create_github_session(token=None):
     session = requests.Session()

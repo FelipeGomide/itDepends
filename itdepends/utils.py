@@ -15,3 +15,6 @@ def save_to_csv(df, output_name, repo_name):
     df.to_csv(output_file, index=False)
     
     return output_file
+
+def diff_in_months(d1, d2):
+    return (d2.year - d1.year) * 12 + d2.month - d1.month

@@ -108,10 +108,10 @@ def test_multiple_relevant_commits():
 # ------------------------------------------------------
 # TESTE 4: Verifica se main() chama save_to_csv
 # ------------------------------------------------------
-@patch("yourmodule.analyzer.save_to_csv")
-@patch("yourmodule.analyzer.analyze_repository_commit_history")
+@patch("itdepends.history.save_to_csv")
+@patch("itdepends.history.analyze_repository_commit_history")
 def test_main_calls_save(mock_analysis, mock_save, monkeypatch):
-    from yourmodule.analyzer import main
+    from itdepends.history import main
     mock_analysis.return_value = pd.DataFrame([{"a": 1}])
     mock_save.return_value = "file.csv"
 
