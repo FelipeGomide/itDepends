@@ -12,7 +12,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "pydriller (>=2.9,<3.0)",
-    "click (>=8.3.1,<9.0.0)"
+    "click (>=8.3.1,<9.0.0)",
+    "pandas (>=2.3.3,<3.0.0)"
 ]
 
 [project.scripts]

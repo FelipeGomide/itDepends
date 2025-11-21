@@ -1,48 +1,84 @@
 import os
+import logging
 from pydriller import Repository
 import pandas as pd
-# from .parser import parse_dependency_file # importa a função de parser que o Lucca fizer
+from itdepends.parsers import parse_dependency_file
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-TARGET_FILES = {"pyproject.toml", "requirements.txt"}
+# Extensões que queremos monitorar para otimizar o PyDriller
+TARGET_EXTENSIONS = [".toml", ".txt", ".lock", ".pip"]
+TARGET_FILES_PATTERNS = ("requirements.txt", "pyproject.toml", "poetry.lock")
 
-
-def analyze_repository(repo_full_name: str):
-    repo_url = f"https://github.com/{repo_full_name}.git"
-
-    print(f"Clonando e analisando repositório: {repo_url}")
+def analyze_repository(repo_path_or_name: str) -> pd.DataFrame:
+    # Define URL
+    if os.path.exists(repo_path_or_name):
+        repo_url = repo_path_or_name
+        logger.info(f"Analisando local: {repo_url}")
+    else:
+        repo_url = f"https://github.com/{repo_path_or_name}.git"
+        logger.info(f"Analisando remoto: {repo_url}")
 
     records = []
 
-    # PyDriller cuida do clone temporário automaticamente
-    for commit in Repository(repo_url).traverse_commits():
+    repo_miner = Repository(
+        repo_url,
+        only_modifications_with_file_types=TARGET_EXTENSIONS
+    )
 
-        for mod in commit.modifications:
-            filename = os.path.basename(mod.new_path or "")
+    try:
+        for commit in repo_miner.traverse_commits():
+            
+            # PyDriller v2.0+ usa 'modified_files'. Versões antigas usam 'modifications'.
+            modifications = getattr(commit, "modified_files", None) or getattr(commit, "modifications", [])
 
-            if filename in TARGET_FILES:
-                # Dentro do loop de modificações
-                try:
-                    # Chama a função que o Lucca implementou
-                    #parsed_before = parse_dependency_file(filename, before)
-                    #parsed_after = parse_dependency_file(filename, after)
-                except Exception as e:
-                    # Captura erros no parsing e registra
-                    print(f"Erro ao analisar o arquivo {filename} no commit {commit.hash}: {e}")
-                    parsed_before = None
-                    parsed_after = None
+            for mod in modifications:
+                # Pega o nome do arquivo
+                filename = os.path.basename(mod.new_path or mod.old_path or "")
 
-                records.append({
-                    "repository": repo_full_name,
-                    "commit_hash": commit.hash,
-                    "author": commit.author.name,
-                    "date": commit.author_date,
-                    "file": filename,
-                    "old_content": before,
-                    "new_content": after,
-                    "parsed_before": parsed_before,
-                    "parsed_after": parsed_after
-                })
+                # Verifica se é um dos arquivos que sabemos analisar
+                if filename.endswith(TARGET_FILES_PATTERNS):
+                    content_after = mod.source_code 
+                    content_before = mod.source_code_before
+                    
+                    try:
+                        # Faz o parse (retorna lista de objetos Dependency)
+                        deps_before = parse_dependency_file(filename, content_before)
+                        deps_after = parse_dependency_file(filename, content_after)
+                        
+                        # Converte para dict para o Pandas
+                        parsed_before = [d.to_dict() for d in deps_before]
+                        parsed_after = [d.to_dict() for d in deps_after]
+                        
+                    except Exception as e:
+                        logger.error(f"Erro crítico no arquivo {filename} commit {commit.hash}: {e}")
+                        parsed_before = []
+                        parsed_after = []
 
-    df = pd.DataFrame(records)
-    return df
+                    records.append({
+                        "repository": repo_path_or_name,
+                        "commit_hash": commit.hash,
+                        "author": commit.author.name,
+                        "date": commit.author_date,
+                        "file": filename, 
+                        "old_content": content_before,
+                        "new_content": content_after,
+                        "parsed_before": parsed_before,
+                        "parsed_after": parsed_after
+                    })
+
+    except Exception as e:
+        logger.critical(f"Falha fatal na análise do repositório: {e}")
+
+    # Colunas esperadas
+    expected_columns = [
+        "repository", "commit_hash", "author", "date",
+        "file", "old_content", "new_content",
+        "parsed_before", "parsed_after"
+    ]
+
+    if not records:
+        return pd.DataFrame(columns=expected_columns)
+
+    return pd.DataFrame(records, columns=expected_columns)
