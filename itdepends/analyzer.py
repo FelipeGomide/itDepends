@@ -1,4 +1,5 @@
 import os
+import sys
 from pydriller import Repository
 import pandas as pd
 # from .parser import parse_dependency_file # importa a função de parser que o Lucca fizer
@@ -46,3 +47,22 @@ def analyze_repository(repo_full_name: str):
 
     df = pd.DataFrame(records)
     return df
+
+def main():
+    if len(sys.argv) < 2:
+        sys.exit(1)
+
+    repo_name = sys.argv[1]
+
+    df = analyze_repository(repo_name)
+
+    print(f"\nTotal de commits relevantes: {len(df)}")
+    print(df.head())
+
+    output_file = f"{repo_name.replace('/', '_')}_dependency_changes.csv"
+    df.to_csv(output_file, index=False)
+
+    print(f"\nArquivo salvo: {output_file}")
+
+if __name__ == "__main__":
+    main()
