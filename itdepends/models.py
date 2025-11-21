@@ -1,0 +1,1 @@
+# definir as classes compartilhadas por mais de um arquivo aqui.
