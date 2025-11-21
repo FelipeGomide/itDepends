@@ -1,8 +1,11 @@
 import click
 import re
 
+from application import run
+
 @click.command()
 @click.argument('repository_name', metavar = "<repository_name>")
+@click.option('max_months', help= 'Number of months without commits to consider a repository inactive', type=click.INT)
 def cli(repository_name):
     """
     \b
@@ -16,6 +19,8 @@ def cli(repository_name):
     if not valid:
         raise click.UsageError(f"Invalid repository name: {repository_name}")
 
+    run(repository_name)
+    
     return
 
 def parse_repo_name(repository_name):
