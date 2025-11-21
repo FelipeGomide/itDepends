@@ -18,19 +18,16 @@ class TomlParser(BaseParser):
         except Exception as e:
             logger.error(f"TOML inválido em {self.filename}: {e}")
             return []
-
-        # 1. Estratégia: Poetry Lock ([[package]])
-        # (Erro 1): Detecta estrutura de lista de pacotes
+        
         if "package" in data and isinstance(data["package"], list):
             self._parse_lock_packages(data["package"], dependencies)
             return dependencies
-
-        # 2. Estratégia: PEP 621 ([project.dependencies])
+        
         project_deps = data.get("project", {}).get("dependencies", [])
         if project_deps:
             self._parse_pep621_list(project_deps, dependencies, "main")
         
-        # 3. Estratégia: Poetry Manifesto ([tool.poetry.dependencies])
+        
         poetry_section = data.get("tool", {}).get("poetry", {})
         if poetry_section:
             self._parse_poetry_dict(poetry_section.get("dependencies", {}), dependencies, "main")

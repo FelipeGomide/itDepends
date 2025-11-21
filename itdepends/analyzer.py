@@ -7,7 +7,6 @@ from itdepends.parsers import parse_dependency_file
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Extensões que queremos monitorar para otimizar o PyDriller
 TARGET_EXTENSIONS = [".toml", ".txt", ".lock", ".pip"]
 TARGET_FILES_PATTERNS = ("requirements.txt", "pyproject.toml", "poetry.lock")
 
