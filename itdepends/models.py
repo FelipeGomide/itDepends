@@ -27,7 +27,6 @@ class Dependency:
     
     dependency_type: DependencyType = DependencyType.PACKAGE
     category: DependencyCategory = DependencyCategory.MAIN
-
     
     raw_specifier: Optional[str] = None   # 'raw_specifier' guarda o texto original (ex: "^1.0")
     version_rules: List[VersionRule] = field(default_factory=list) # 'version_rules' guarda a lógica

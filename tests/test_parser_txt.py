@@ -53,7 +53,6 @@ def test_requirements_parser_complex_cases():
     editable = deps[2]
     assert editable.dependency_type == DependencyType.EDITABLE
     assert editable.source_path == "."
-    # CORREÇÃO: O packaging normaliza nomes não padrão (como ponto) para traço
     assert editable.name == "-" 
 
     # 4. Git URL
@@ -76,9 +75,6 @@ def test_requirements_parser_ignores_invalid_lines(caplog):
 
     assert len(deps) == 1
     assert deps[0].name == "requests"
-    
-    # O parser ignora flags desconhecidas silenciosamente ou com warning
-    # (Neste caso específico, --invalid-flag cai no check de flags '-')
 
 def test_toml_parser_pep621_modern():
     content = """
@@ -170,8 +166,6 @@ def test_requirements_parser_vcs_variations():
     assert repo.name == "my-repo"
     assert repo.git_ref is None
 
-
-
 def test_requirements_parser_local_paths():
     content = """
     # Formato file:// (padrão antigo)
@@ -219,8 +213,7 @@ def test_requirements_parser_edge_cases_formatting():
     
     req = deps[0]
     assert req.name == "requests"
-    assert req.pinned_version == "2.0.0" 
-    # Garante que o comentário "\t# via tab" foi removido e não quebrou o parse
+    assert req.pinned_version == "2.0.0"
 
 def test_requirements_parser_edge_cases_security_and_formats():
     content = """
@@ -239,8 +232,7 @@ def test_requirements_parser_edge_cases_security_and_formats():
     """
     parser = RequirementsParser(content, "requirements.txt")
     deps = parser.parse()
-
-    # CORREÇÃO: São 5 itens (1 Auth + 1 SCP + 2 Arquivos + 1 Requests)
+    
     assert len(deps) == 5
 
     # 1. Auth Case

@@ -8,7 +8,7 @@ def get_parser_class(filename: str) -> Optional[Type[BaseParser]]:
     """
     Factory method que decide qual parser usar baseado no nome do arquivo.
     """
-    if filename.endswith("requirements.txt") or filename.endswith(".pip"):
+    if "requirements" in filename and (filename.endswith(".txt") or filename.endswith(".pip")):
         return RequirementsParser
     
     if filename in ["pyproject.toml", "poetry.lock"]:
@@ -18,8 +18,7 @@ def get_parser_class(filename: str) -> Optional[Type[BaseParser]]:
 
 def parse_dependency_file(filename: str, content: Optional[str]) -> List[Dependency]:
     """
-    Retorna Lista de Objetos Dependency (Tipada), não dicts.
-    A conversão para dict acontece apenas na camada de apresentação (analyzer).
+    Retorna Lista de Objetos Dependency.
     """
     if content is None:
         return []

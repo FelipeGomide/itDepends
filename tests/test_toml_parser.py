@@ -206,7 +206,6 @@ def test_parse_poetry_multiple_constraints_list():
     deps = parser.parse()
 
     # Esperamos 3 dependências: 1 requests + 2 entradas de numpy
-    # (Ou pelo menos 1 entrada de numpy mesclada, mas seu parser atual retorna 1 no total)
     assert len(deps) == 3 
     
     numpy_entries = [d for d in deps if d.name == "numpy"]
@@ -215,3 +214,113 @@ def test_parse_poetry_multiple_constraints_list():
     # Verifica se pegou as versões diferentes
     versions = sorted([d.raw_specifier for d in numpy_entries])
     assert versions == ["^1.19", "^1.24"]
+
+def test_parse_poetry_version_rules_logic():
+    """
+    Testa se a string de versão é convertida corretamente em objetos VersionRule.
+    """
+    content = """
+    [tool.poetry.dependencies]
+    # Caso 1: Pinagem exata (Deve gerar pinned_version)
+    exact-lib = "==1.5.0"
+    
+    # Caso 2: Múltiplas regras (virgula)
+    range-lib = ">=1.0.0, <2.0.0"
+    
+    # Caso 3: Operador implícito (Poetry trata "1.0" como "^1.0", 
+    # mas nosso parser deve ser robusto e extrair o número)
+    implicit-lib = "1.2.3"
+    
+    # Caso 4: Operador Tilde/Caret
+    caret-lib = "^2.0.0"
+    """
+    parser = TomlParser(content, "pyproject.toml")
+    deps = parser.parse()
+
+    assert len(deps) == 4
+
+    # Caso 1
+    exact = next(d for d in deps if d.name == "exact-lib")
+    assert exact.pinned_version == "1.5.0"
+    assert len(exact.version_rules) == 1
+
+    # Caso 2
+    range_dep = next(d for d in deps if d.name == "range-lib")
+    assert len(range_dep.version_rules) == 2
+    ops = {r.operator for r in range_dep.version_rules}
+    assert ">=" in ops and "<" in ops
+
+    # Caso 3
+    implicit = next(d for d in deps if d.name == "implicit-lib")
+    assert implicit.version_rules[0].operator == "==" 
+    assert implicit.version_rules[0].version == "1.2.3"
+
+def test_parse_empty_or_partial_manifests():
+    """
+    Garante que o parser não quebra (KeyError/AttributeError) 
+    se o arquivo existir mas não tiver as seções de dependência.
+    """
+    # 1. Arquivo vazio
+    parser = TomlParser("", "pyproject.toml")
+    assert parser.parse() == []
+
+    # 2. Arquivo apenas com metadados de ferramenta
+    content = """
+    [tool.black]
+    line-length = 88
+    """
+    parser = TomlParser(content, "pyproject.toml")
+    deps = parser.parse()
+    assert deps == []
+
+    # 3. Seção poetry existe mas está vazia
+    content_empty_poetry = """
+    [tool.poetry]
+    name = "pacote"
+    """
+    parser = TomlParser(content_empty_poetry, "pyproject.toml")
+    deps = parser.parse()
+    assert deps == []
+
+def test_parse_poetry_unknown_dict_format():
+    """
+    Se encontrarmos um dicionário que não tem 'version', 'git', 'path' ou 'url',
+    devemos ignorar para não criar uma dependência "fantasma" ou dar erro.
+    """
+    content = """
+    [tool.poetry.dependencies]
+    # Um formato hipotético ou erro de digitação do usuário
+    weird-lib = { some-unknown-key = "value", other = 123 }
+    
+    # Uma válida para garantir que o resto continua funcionando
+    valid-lib = "1.0"
+    """
+    parser = TomlParser(content, "pyproject.toml")
+    deps = parser.parse()
+    
+    assert len(deps) == 1
+    assert deps[0].name == "valid-lib"
+
+def test_parse_pep621_mixed_specs():
+    """
+    Testa a robustez do parser de strings PEP 621 com espaços e operadores variados.
+    """
+    content = """
+    [project]
+    dependencies = [
+        "django >= 3.0",    # Com espaços
+        "pandas>1.0,<2.0",  # Sem espaços, multiplo
+        "requests!=2.0"     # Operador diferente
+    ]
+    """
+    parser = TomlParser(content, "pyproject.toml")
+    deps = parser.parse()
+
+    assert len(deps) == 3
+    
+    django = next(d for d in deps if d.name == "django")
+    assert django.version_rules[0].operator == ">="
+    assert django.version_rules[0].version == "3.0"
+
+    requests_dep = next(d for d in deps if d.name == "requests")
+    assert requests_dep.version_rules[0].operator == "!="
