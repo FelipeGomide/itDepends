@@ -7,11 +7,13 @@ DEFAULT_MAX_MONTHS = 12
 
 @click.command()
 @click.argument('repository_name', metavar = "<repository_name>")
-@click.option('--max_months',
+@click.option('--path', help='Path to the previously cloned repository', default=None)
+@click.option('--since_months', help='Number of months from now, to analyze commits', default=12)
+@click.option('--inactive_months',
               help= 'Number of months without commits to consider a repository inactive',
               type=int,
               default= DEFAULT_MAX_MONTHS)
-def cli(repository_name, max_months):
+def cli(repository_name, inactive_months, since_months, path):
     """
     \b
     <repository_name>: Target repository on GitHub.
@@ -24,7 +26,7 @@ def cli(repository_name, max_months):
     if not valid:
         raise click.UsageError(f"Invalid repository name: {repository_name}")
 
-    run(repository_name, max_months)
+    run(repository_name, path, since_months, inactive_months)
     
     return
 

@@ -1,7 +1,7 @@
 import os
 
-def create_results_directories(project_folder_name):
-    nested_path = f"results/{project_folder_name}"
+def create_results_directories(repo_name):
+    nested_path = f"results/{repo_name.replace('/', '_')}"
     
     os.makedirs(nested_path, exist_ok=True)
 

@@ -324,3 +324,42 @@ def test_parse_pep621_mixed_specs():
 
     requests_dep = next(d for d in deps if d.name == "requests")
     assert requests_dep.version_rules[0].operator == "!="
+    
+def test_parse_or_operator_logic():
+    """Testa versões com || (comum em ecossistema JS ou markers complexos)"""
+    content = """
+    [tool.poetry.dependencies]
+    complex-lib = "<20.4.5 || >=20.4.7"
+    """
+    parser = TomlParser(content, "pyproject.toml")
+    deps = parser.parse()
+
+    assert len(deps) == 1
+    lib = deps[0]
+    
+    assert len(lib.version_rules) == 2
+    
+    rule1 = lib.version_rules[0]
+    assert rule1.operator == "<"
+    assert rule1.version == "20.4.5"
+    
+    rule2 = lib.version_rules[1]
+    assert rule2.operator == ">="
+    assert rule2.version == "20.4.7"
+
+def test_parse_comma_and_or_mix():
+    """Testa mistura de virgula e ||"""
+    content = """
+    [tool.poetry.dependencies]
+    weird-lib = ">=1.0, <2.0 || >3.0"
+    """
+    parser = TomlParser(content, "pyproject.toml")
+    deps = parser.parse()
+
+    assert len(deps) == 1
+    rules = deps[0].version_rules
+    assert len(rules) == 3
+    
+    expected = {(">=", "1.0"), ("<", "2.0"), (">", "3.0")}
+    found = {(r.operator, r.version) for r in rules}
+    assert found == expected

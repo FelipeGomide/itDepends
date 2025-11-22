@@ -111,15 +111,21 @@ class TomlParser(BaseParser):
                 self._process_poetry_item(name, value, dep_list, category)
     
     def _parse_specifier_string(self, spec_str: str) -> List[VersionRule]:
-        """Converte strings como '^1.0,!=1.2' em objetos VersionRule"""
+        """Converte strings como '^1.0,!=1.2' ou '>=1.0 || <2.0' em regras"""
         rules = []
         if not spec_str:
             return rules
         
-        parts = [p.strip() for p in spec_str.split(',')]
+        normalized_spec = spec_str.replace("||", ",")
+        
+        # Separa por vírgula
+        parts = [p.strip() for p in normalized_spec.split(',')]
         
         for part in parts:
+            if not part: continue
+            
             found_op = False
+            # Verifica operadores (ordem importa: >= antes de >)
             for op in ["==", ">=", "<=", "!=", ">", "<", "~=", "^", "~"]:
                 if part.startswith(op):
                     ver = part[len(op):].strip()
@@ -127,7 +133,8 @@ class TomlParser(BaseParser):
                     found_op = True
                     break
             
-            if not found_op and part:
+            if not found_op:
+                # Fallback: se começa com dígito ou *, assume ==
                 if part[0].isdigit() or part[0] == '*':
                      rules.append(VersionRule(operator="==", version=part))
 

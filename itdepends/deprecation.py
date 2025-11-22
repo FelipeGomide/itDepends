@@ -1,6 +1,8 @@
 from .integrations import GitHubClient, PyPiClient
 import pandas as pd
 
+from .parsers import parse_dependency_file
+
 TARGET_FILES = {"pyproject.toml", "requirements.txt"}
 
 def full_deprecation_analysis(cloned_repo, max_months):
@@ -8,18 +10,6 @@ def full_deprecation_analysis(cloned_repo, max_months):
     commit = list(cloned_repo.traverse_commits())[-1]
     
     dependencies = []
-    
-    for modification in commit.modified_files:
-        file_name = modification.new_path if modification.new_path else modification.old_path
-        
-        if file_name in TARGET_FILES and modification.change_type.name != 'DELETE':
-            file_content = modification.source_code
-            
-            # Chama a função que o Lucca implementou
-            # parsed = parse_dependency_file(filename, before)
-            
-            #dependencies.append({name: parsed.name,
-            #                      })
             
     for dependency in dependencies:
         archived, inactive = check_deprecation(dependency.name, max_months)

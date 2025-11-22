@@ -421,7 +421,7 @@ def gerar_relatorio_dependencias(
     # -------------------------------------------------------
     df_trabalho = df.copy()
     # Converter datas com formato flexível
-    df_trabalho["Data_Commit"] = pd.to_datetime(df_trabalho["Data_Commit"], format='mixed', errors='coerce')
+    df_trabalho["Data_Commit"] = pd.to_datetime(df_trabalho["Data_Commit"], format='mixed', errors='coerce', utc=True)
 
     # Verificar se há datas inválidas após conversão
     datas_invalidas = df_trabalho["Data_Commit"].isna().sum()

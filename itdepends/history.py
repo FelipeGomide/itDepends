@@ -2,43 +2,52 @@ import os
 import sys
 
 import pandas as pd
+from datetime import datetime
+from tqdm import tqdm
 
 from .utils import save_to_csv, create_results_directories
-# from .parser import parse_dependency_file # importa a função de parser que o Lucca fizer
+from .parsers import parse_dependency_file # importa a função de parser que o Lucca fizer
 
 TARGET_FILES = {"pyproject.toml", "requirements.txt"}
 
 def analyze_repository_commit_history(cloned_repo, repo_full_name):
     records = []
-
-    for commit in cloned_repo.traverse_commits():
-
+    
+    for commit in tqdm(cloned_repo.traverse_commits(), desc="Traversing commits"):
+    
         for mod in commit.modified_files:
             filename = os.path.basename(mod.new_path or "")
-            print(filename)
-
+            
             if filename in TARGET_FILES:
                 try:
                     # Chama a função que o Lucca implementou
-                    # parsed = parse_dependency_file(filename, before)
-                    parsed = None # Temporário
+                    parsed = parse_dependency_file(filename, mod.source_code)
+                    #parsed = None # Temporário
                     
                 except Exception as e:
                     # Captura erros no parsing e registra
                     print(f"Erro ao analisar o arquivo {filename} no commit {commit.hash}: {e}")
                     parsed_before = None
 
-                records.append({
-                    "repository": repo_full_name,
-                    "commit_hash": commit.hash,
-                    "author": commit.author.name,
-                    "date": commit.author_date,
-                    "file": filename,
-                    # "old_content": before,
-                    # "new_content": after,
-                    "dependencies": parsed,
-                    #"parsed_after": parsed_after
-                })
+                for dep in parsed:
+                                    
+                    version_floor = None
+                    for cond in dep.version_rules:
+                        if cond.operator in ['==', '>=', '^']:
+                            version_floor = cond.version
+                            
+                    if version_floor == None:
+                        continue
+                    
+                    records.append({
+                        "Origem": repo_full_name,
+                        "Hash_Commit": commit.hash,
+                        "Autor": commit.author.name,
+                        "Data_Commit": commit.author_date.isoformat(),
+                        "file": filename,
+                        "Dependencia": dep.name, 
+                        "Versao": version_floor,
+                    })
 
     df = pd.DataFrame(records)
     return df
