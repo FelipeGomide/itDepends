@@ -1,43 +1,77 @@
 from .integrations import GitHubClient, PyPiClient
 import pandas as pd
 
+import os
+
 from .parsers import parse_dependency_file
 
 TARGET_FILES = {"pyproject.toml", "requirements.txt"}
 
-def full_deprecation_analysis(cloned_repo, max_months):
+def full_deprecation_analysis(repo_name, max_months):
+    dependency_files = get_dependency_files(repo_name)
     
-    commit = list(cloned_repo.traverse_commits())[-1]
+    dependencies = {}
+    for file in dependency_files:
+        deps = parse_dependency_file(filename=file['name'], content=file['content'])
+        for dep in deps:
+            dependencies[dep.name] = dep
+
+    dependencies = list(dependencies.values())
     
-    dependencies = []
-            
+    results = []
     for dependency in dependencies:
-        archived, inactive = check_deprecation(dependency.name, max_months)
+        archived, inactive, status, available = check_deprecation(dependency.name, max_months)
         
-        dependency['archived'] = archived
-        dependency['inactive'] = inactive 
+        if not available: continue
+        
+        results.append({
+            'Nome': dependency.name,
+            'Arquivado': archived,
+            'Inativo': inactive,
+            'Status (PyPi)': status,
+        })
     
-    df = pd.DataFrame(dependencies)
+    df = pd.DataFrame(results)
     return df
     
+def get_dependency_files(repo_name):
+    gh = GitHubClient()
+    
+    branch = gh.get_default_branch_name(repo_name)
+    
+    tree = gh.get_file_tree(repo_name, branch)
+    
+    dep_files = []
+    
+    for file in tree:
+        name = os.path.basename(file.get('path'))
+        
+        if name.endswith('.toml') or 'requirements' in name:
+            url = file.get('url')
+            
+            contents = gh.get_file_contents(url)
+            dep_files.append({"name": name, "content": contents})
+            
+    return dep_files
 
 def check_deprecation(package_name, max_months):
-    github_repo, status = get_dependency_pypi_info(package_name)
+    repo = []
+    repo, status = get_dependency_pypi_info(package_name)
     
-    archived, inactive = get_github_info(github_repo, max_months)
+    archived, inactive, available = get_github_info(repo, max_months)
     
-    return archived, inactive
+    return archived, inactive, status, available
     
 def get_dependency_pypi_info(package_name):
     pypi = PyPiClient()
     
-    success, repo_name = pypi.get_github_repo_name(package_name)
-    stage = pypi.verify_development_status(package_name)
+    success_gh, repo_name = pypi.get_github_repo_name(package_name)
+    succes_pypi, stage = pypi.verify_development_status(package_name)
     
-    if success:
+    if success_gh and succes_pypi:
         return repo_name, stage
     
-    return "no_repo_found", stage
+    return "no_repo_found", False
 
 def get_github_info(repo_name, max_months):
     gh = GitHubClient()
@@ -45,5 +79,7 @@ def get_github_info(repo_name, max_months):
     if gh.verify_repo_existance(repo_name):
         archived = gh.verify_archived(repo_name)
         inactive = gh.verify_inactivity(repo_name, max_months)
-        
-    return archived, inactive
+    
+        return archived, inactive, True
+    
+    return False, False, False

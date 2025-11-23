@@ -52,26 +52,26 @@ class PyPiClient():
         
         project_urls = info.get("project_urls", {})
         
-        package_github = None
+        package_github = []
         
         for section in project_urls:
             url = project_urls.get(section, None)
             
             if "github.com" in url:
-                package_github = url
-                break;
+                package_github.append(url)
 
-        if not package_github:
+        if len(package_github) == 0:
             return False, f"Couldn't find file with name '{package_name}'."
         
-        match = re.search(r"github\.com/([^/]+)/([^/]+)", package_github)
-        
-        if match:
-            owner = match.group(1)
-            repo = match.group(2).split(".")[0] # Remove .git or other extensions
-            return True, owner + "/" + repo
-        else:
-            return False, f"URL found ('{package_github}'), but couldn't parse owner/repo."
+        for val in package_github:
+            match = re.search(r"github\.com/([^/]+)/([^/]+)", val)
+            
+            if match:
+                owner = match.group(1)
+                repo = match.group(2).split(".")[0] # Remove .git or other extensions
+                return True, owner + "/" + repo
+            
+        return False, f"URLs found, but couldn't parse owner/repo."
         
 def create_session():
     session = requests.Session()

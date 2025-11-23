@@ -334,6 +334,14 @@ def get_template_padrao() -> str:
             </p>
             {{ tabela_resumo|safe }}
         </article>
+        
+        <article class="plot-container">
+            <h2>Avaliação das dependências</h2>
+            <p class="plot-description">
+                Para cada dependência, uma análise de depreciação.
+            </p>
+            {{ depreciacao|safe }}
+        </article>
     </section>
 
     <footer>
@@ -346,6 +354,7 @@ def get_template_padrao() -> str:
 
 def gerar_relatorio_dependencias(
     df: pd.DataFrame,
+    df_deprec: pd.DataFrame,
     nome_projeto: str = "ItDepends",
     output_path: str = "relatorio_dependencias.html",
     altura_grafico_timeline: int = 400,
@@ -483,6 +492,12 @@ def gerar_relatorio_dependencias(
         classes="dataframe-table",
         border=0,
     )
+    
+    tabela_deprec_html = df_deprec.to_html(
+        index=False,
+        classes="dataframe-table",
+        border=0,
+    )
 
     # -------------------------------------------------------
     # Gráfico 1 – Linha do tempo das versões
@@ -558,6 +573,7 @@ def gerar_relatorio_dependencias(
         plot_timeline=html_plot_timeline,
         plot_upgrades=html_plot_bar,
         tabela_resumo=tabela_resumo_html,
+        depreciacao = tabela_deprec_html,
     )
 
     # Salvar o arquivo

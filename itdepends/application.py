@@ -27,15 +27,16 @@ def run(repo_name, path=None, since_months = 12, max_months = 12):
         history_df = analyze_repository_commit_history(cloned_repo, repo_name)
         
         click.echo('Analyzing last version dependencies.')
-        #deprecation_df = full_deprecation_analysis(cloned_repo, max_months)
+        deprecation_df = full_deprecation_analysis(repo_name, max_months)
         
         create_results_directories(repo_name)
         save_to_csv(history_df, 'history', repo_name)
-        #save_to_csv(deprecation_df, 'deprecation', repo_name)
+        save_to_csv(deprecation_df, 'deprecation', repo_name)
                 
         template = get_template_padrao()
         
         gerar_relatorio_dependencias(history_df,
+                                     deprecation_df,
                                      nome_projeto=repo_name,
                                      template_html=template,
                                      output_path=f'results/{repo_name.replace('/', '_')}/report.html')

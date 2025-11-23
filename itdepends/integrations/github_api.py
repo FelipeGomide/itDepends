@@ -1,5 +1,6 @@
 import requests
 
+from base64 import b64decode
 import os
 from datetime import datetime, timezone
 from ..utils import diff_in_months
@@ -9,7 +10,7 @@ class GitHubClient:
         self.session = create_github_session(token)
         self.session.timeout = timeout
         self.base_url = "https://api.github.com/repos/"
-        
+    
     def do_safe_request(self, url):
         try:
             response = self.session.get(url)
@@ -24,10 +25,33 @@ class GitHubClient:
         
     def verify_repo_existance(self, repo_name):
         url = self.base_url + repo_name
-        
+    
         response = self.session.get(url)
         
         return response.status_code == 200
+    
+    def get_default_branch_name(self, repo_name):
+        url = self.base_url + repo_name
+        
+        data, error = self.do_safe_request(url)
+        
+        if (error): raise Exception(error);
+        
+        return data.get('default_branch')
+    
+    def get_file_contents(self, url):
+        data, erros = self.do_safe_request(url)
+        
+        content = b64decode(data.get('content')).decode("utf-8")
+        
+        return content
+    
+    def get_file_tree(self, repo_name, branch):
+        url = f"https://api.github.com/repos/{repo_name}/git/trees/{branch}?recursive=1"
+        
+        data, error = self.do_safe_request(url)
+        
+        return data.get('tree')
     
     def verify_inactivity(self, repo_name, max_months=6):
         url = self.base_url + repo_name
