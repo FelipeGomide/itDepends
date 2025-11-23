@@ -37,7 +37,7 @@ def analyze_repository_commit_history(cloned_repo, repo_full_name):
                             version_floor = cond.version
                             
                     if version_floor == None:
-                        continue
+                        version_floor = '*'
                     
                     records.append({
                         "Origem": repo_full_name,

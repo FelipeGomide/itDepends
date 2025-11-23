@@ -32,12 +32,8 @@ def run(repo_name, path=None, since_months = 12, max_months = 12):
         create_results_directories(repo_name)
         save_to_csv(history_df, 'history', repo_name)
         #save_to_csv(deprecation_df, 'deprecation', repo_name)
-        
-        # chamar o gerador de saida do Lucas
-        
+                
         template = get_template_padrao()
-        
-        print(history_df["Data_Commit"])
         
         gerar_relatorio_dependencias(history_df,
                                      nome_projeto=repo_name,

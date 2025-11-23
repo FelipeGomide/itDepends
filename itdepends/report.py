@@ -3,6 +3,7 @@ import plotly.express as px
 from jinja2 import Template
 from typing import Optional
 from pathlib import Path
+from packaging.version import Version
 
 
 def get_template_padrao() -> str:
@@ -441,6 +442,23 @@ def gerar_relatorio_dependencias(
     # -------------------------------------------------------
     df_sorted = df_trabalho.sort_values(["Dependencia", "Data_Commit"])
 
+    def safe_version_key(v):
+        try:
+            return (0, Version(v))  # versões reais
+        except:
+            return (1, v)           # versões inválidas ou curingas
+    
+    # Ordenar as versões de forma semântica (2.10 > 2.9 etc.)
+    unique_versions = sorted(df_sorted["Versao"].unique(), key=safe_version_key)
+
+    # Transformar Versao em categórica ordenada
+    df_sorted["Versao"] = pd.Categorical(
+        df_sorted["Versao"],
+        categories=unique_versions,
+        ordered=True,
+    )
+
+
     resumo_dep = (
         df_sorted
         .groupby("Dependencia")
@@ -486,6 +504,12 @@ def gerar_relatorio_dependencias(
         xaxis=dict(automargin=True),
         yaxis=dict(automargin=True),
     )
+
+    fig_timeline.update_yaxes(
+        categoryorder="array",
+        categoryarray=unique_versions,
+    )
+
 
     html_plot_timeline = fig_timeline.to_html(
         full_html=False,
@@ -602,10 +626,10 @@ if __name__ == "__main__":
             output_path="relatorio_final.html"
         )
 
-        print("Relatório gerado com sucesso!")
-        print(f"Arquivo: {arquivo_gerado}")
-        print("Nome do projeto em DESTAQUE")
-        print("Template pode ser customizado via parâmetro")
+        print("✅ Relatório gerado com sucesso!")
+        print(f"📄 Arquivo: {arquivo_gerado}")
+        print("📊 Nome do projeto em DESTAQUE")
+        print("🎨 Template pode ser customizado via parâmetro")
 
     except ValueError as e:
-        print(f"Erro: {e}")
+        print(f"❌ Erro: {e}")
