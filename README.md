@@ -26,3 +26,32 @@ Os resultados são apresentados em um relatório HTML, contendo gráficos e tabe
 - Lucas Junqueira Carvalhido
 
 - Lucca Alvarenga de Magalhaes Pinto
+
+## Como instalar a ferramenta.
+
+1. Faça o clone do repositório
+2. Na pasta raiz, execute:
+  `python -m pip install .`
+
+obs: Recomendamos que faça isso num ambiente virtual Python
+
+## Como utilizar a ferramenta.
+
+Para executar a ferramenta, use o comando:
+
+`python -m itdepends <owner/repo>`
+
+A ferramenta também aceita outros parâmetros opcionais:
+
+```
+Opções:
+  --path TEXT                Caminho para a pasta do repositório clonado anteriormente
+  --since_months INTEGER     Número de meses para buscar por commits
+  --inactive_months INTEGER  Quantidade de meses sem commits para considerar um repositório inativo
+```
+
+## Como executar os testes localmente.
+
+Execute utilizando a biblioteca Pytest.
+
+`python3 pytest`
