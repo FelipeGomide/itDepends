@@ -18,3 +18,12 @@ def save_to_csv(df, output_name, repo_name):
 
 def diff_in_months(d1, d2):
     return (d2.year - d1.year) * 12 + d2.month - d1.month
+
+def file_is_suitable(dirname, filename):
+    if "test" in dirname: return False
+
+    if filename.endswith('.toml'): return True
+
+    if 'requirements' in filename: return True
+
+    return False

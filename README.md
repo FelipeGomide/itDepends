@@ -50,6 +50,15 @@ Opções:
   --inactive_months INTEGER  Quantidade de meses sem commits para considerar um repositório inativo
 ```
 
+Obs: Para a execução da análise de depreciação, são realizadas consultas na API do GitHub, que possui um rate limit considerado baixo (60 por hora).
+Para extender esse limite e evitar erros, gere um TOKEN de consulta da API do GitHub e salve como uma variável de ambiente com o comando:
+`export GITHUB_TOKEN=<seu_token_gerado>`
+
+
+Os resultados são salvos na pasta `results/owner_repo/`
+São salvas duas planilhas `.csv`, deprecation e history,
+ bem como um relatório completo dos dados extraídos, em `report.html`.
+
 ## Como executar os testes localmente.
 
 Execute utilizando a biblioteca Pytest.

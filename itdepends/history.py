@@ -5,8 +5,8 @@ import pandas as pd
 from datetime import datetime
 from tqdm import tqdm
 
-from .utils import save_to_csv, create_results_directories
-from .parsers import parse_dependency_file # importa a função de parser que o Lucca fizer
+from .utils import save_to_csv, file_is_suitable
+from .parsers import parse_dependency_file
 
 TARGET_FILES = {"pyproject.toml", "requirements.txt"}
 
@@ -17,17 +17,14 @@ def analyze_repository_commit_history(cloned_repo, repo_full_name):
     
         for mod in commit.modified_files:
             filename = os.path.basename(mod.new_path or "")
+            dirname = os.path.dirname(mod.new_path or "")
             
-            if filename in TARGET_FILES:
+            if file_is_suitable(dirname, filename):
                 try:
-                    # Chama a função que o Lucca implementou
                     parsed = parse_dependency_file(filename, mod.source_code)
-                    #parsed = None # Temporário
                     
                 except Exception as e:
-                    # Captura erros no parsing e registra
                     print(f"Erro ao analisar o arquivo {filename} no commit {commit.hash}: {e}")
-                    parsed_before = None
 
                 for dep in parsed:
                                     

@@ -9,7 +9,9 @@ from dateutil.relativedelta import relativedelta
 import click
 from pydriller import Repository
 
-def run(repo_name, path=None, since_months = 12, max_months = 12):
+import traceback
+
+def run(repo_name, path, since_months, max_months):
     repo_url = f"https://github.com/{repo_name}.git"
     
     if path:
@@ -23,12 +25,13 @@ def run(repo_name, path=None, since_months = 12, max_months = 12):
         cloned_repo = Repository(repo_origin, since=since_date,
                                 only_modifications_with_file_types=['.txt','.toml', '.pip'])
                 
-        click.echo('Evaluating commits history.')
+        click.echo('Evaluating commits history...')
         history_df = analyze_repository_commit_history(cloned_repo, repo_name)
         
-        click.echo('Analyzing last version dependencies.')
+        click.echo('Analyzing last version dependencies...')
         deprecation_df = full_deprecation_analysis(repo_name, max_months)
         
+        click.echo("Saving results and creating report...")
         create_results_directories(repo_name)
         save_to_csv(history_df, 'history', repo_name)
         save_to_csv(deprecation_df, 'deprecation', repo_name)
@@ -41,8 +44,11 @@ def run(repo_name, path=None, since_months = 12, max_months = 12):
                                      template_html=template,
                                      output_path=f'results/{repo_name.replace('/', '_')}/report.html')
         
+        click.echo(f'Report saved in "results/{repo_name.replace('/', '_')}/report.html".')
+
         return 0
     
     except Exception as e:
-        print(e)
+        print("An unexpected error ocurred:", e)
+        print(traceback.format_exc())
         return 1

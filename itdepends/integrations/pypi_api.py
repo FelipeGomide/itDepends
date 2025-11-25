@@ -28,6 +28,9 @@ class PyPiClient():
             return False, error
 
         classifiers = data.get("info", {}).get("classifiers", [])
+
+        if not classifiers:
+            return False, "no_classifiers_available"
         
         status_regex = re.compile(r"Development Status :: (\d - [A-Za-z/]+)")
         
@@ -52,6 +55,9 @@ class PyPiClient():
         
         project_urls = info.get("project_urls", {})
         
+        if not project_urls:
+            return False, "There was no urls linked to the project"
+
         package_github = []
         
         for section in project_urls:
@@ -68,7 +74,7 @@ class PyPiClient():
             
             if match:
                 owner = match.group(1)
-                repo = match.group(2).split(".")[0] # Remove .git or other extensions
+                repo = match.group(2).split(".")[0]
                 return True, owner + "/" + repo
             
         return False, f"URLs found, but couldn't parse owner/repo."
